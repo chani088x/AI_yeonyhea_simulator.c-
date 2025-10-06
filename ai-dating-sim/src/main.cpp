@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <string>
 
@@ -33,7 +34,15 @@ int main() {
         std::cout << "[지난 대화]\n" << conversationHistory << "\n";
     }
 
-    ai::OllamaClient client("http://localhost:11434/api/generate", "llama3");
+    const char* endpointEnv = std::getenv("OLLAMA_ENDPOINT");
+    const char* modelEnv = std::getenv("OLLAMA_MODEL");
+
+    std::string endpoint = endpointEnv ? endpointEnv : "http://localhost:11434/api/generate";
+    std::string model = modelEnv ? modelEnv : "llama3";
+
+    std::cout << "[안내] Ollama 엔드포인트: " << endpoint << " (모델: " << model << ")\n";
+
+    ai::OllamaClient client(endpoint, model);
 
     std::string input;
     while (true) {
