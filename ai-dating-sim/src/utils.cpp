@@ -4,8 +4,56 @@
 #include <cctype>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
+#include <vector>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace ai::utils {
+
+namespace {
+
+std::optional<std::filesystem::path> executableDirectory() {
+#ifdef __linux__
+    std::error_code ec;
+    auto exe = std::filesystem::read_symlink("/proc/self/exe", ec);
+    if (!ec) {
+        return exe.parent_path();
+    }
+#elif defined(_WIN32)
+    std::wstring buffer(MAX_PATH, L'\0');
+    DWORD len = GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
+    if (len > 0 && len < buffer.size()) {
+        buffer.resize(len);
+        return std::filesystem::path(buffer).parent_path();
+    }
+#endif
+    return std::nullopt;
+}
+
+void addCandidate(std::vector<std::filesystem::path>& candidates, const std::filesystem::path& path) {
+    if (path.empty()) {
+        return;
+    }
+    if (std::find(candidates.begin(), candidates.end(), path) == candidates.end()) {
+        candidates.push_back(path);
+    }
+}
+
+void expandWithHierarchy(std::vector<std::filesystem::path>& candidates, const std::filesystem::path& base, const std::string& filename) {
+    namespace fs = std::filesystem;
+    fs::path current = base;
+    for (int depth = 0; depth < 4 && !current.empty(); ++depth) {
+        addCandidate(candidates, current / filename);
+        addCandidate(candidates, current / "data" / filename);
+        addCandidate(candidates, current / "ai-dating-sim" / "data" / filename);
+        current = current.parent_path();
+    }
+}
+
+} // namespace
 
 std::string readFile(const std::string& path) {
     std::ifstream file(path, std::ios::binary);
@@ -18,7 +66,13 @@ std::string readFile(const std::string& path) {
 }
 
 bool writeFile(const std::string& path, const std::string& content) {
-    std::ofstream file(path, std::ios::binary);
+    namespace fs = std::filesystem;
+    fs::path target(path);
+    if (target.has_parent_path()) {
+        std::error_code ec;
+        fs::create_directories(target.parent_path(), ec);
+    }
+    std::ofstream file(target, std::ios::binary);
     if (!file) {
         return false;
     }
@@ -41,7 +95,13 @@ std::optional<nlohmann::json> loadJson(const std::string& path) {
 }
 
 bool saveJson(const std::string& path, const nlohmann::json& data) {
-    std::ofstream file(path);
+    namespace fs = std::filesystem;
+    fs::path target(path);
+    if (target.has_parent_path()) {
+        std::error_code ec;
+        fs::create_directories(target.parent_path(), ec);
+    }
+    std::ofstream file(target);
     if (!file) {
         return false;
     }
@@ -70,6 +130,26 @@ int calculateAffectionDelta(const std::string& playerInput) {
         delta -= 5;
     }
     return delta;
+}
+
+std::optional<std::filesystem::path> findDataFile(const std::string& filename) {
+    namespace fs = std::filesystem;
+    std::vector<fs::path> candidates;
+
+    expandWithHierarchy(candidates, fs::current_path(), filename);
+
+    if (auto exeDir = executableDirectory()) {
+        expandWithHierarchy(candidates, *exeDir, filename);
+    }
+
+    for (const auto& candidate : candidates) {
+        std::error_code ec;
+        if (fs::is_regular_file(candidate, ec)) {
+            return candidate;
+        }
+    }
+
+    return std::nullopt;
 }
 
 } // namespace ai::utils

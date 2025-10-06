@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <string>
+#include <filesystem>
 
 #include <nlohmann/json.hpp>
 
@@ -15,5 +16,7 @@ bool saveJson(const std::string& path, const nlohmann::json& data);
 
 std::string trim(const std::string& text);
 int calculateAffectionDelta(const std::string& playerInput);
+
+std::optional<std::filesystem::path> findDataFile(const std::string& filename);
 
 } // namespace ai::utils
