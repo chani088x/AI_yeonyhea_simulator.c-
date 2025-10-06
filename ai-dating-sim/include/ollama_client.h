@@ -7,7 +7,6 @@ namespace ai {
 class OllamaClient {
 public:
     OllamaClient(const std::string& endpoint, const std::string& model);
-    ~OllamaClient();
 
     std::string generateReply(
         const std::string& persona,

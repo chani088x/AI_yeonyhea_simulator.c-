@@ -1,7 +1,7 @@
 # AI 콘솔 연애 시뮬레이터
 
 ## 프로젝트 개요
-이 프로젝트는 로컬 Ollama API와 연동하여 AI 여자친구 "사야"와의 대화를 콘솔에서 시뮬레이션하는 C++ 애플리케이션입니다. CMake를 통해 빌드되며, `libcurl`과 `nlohmann::json`을 사용해 Ollama와 통신하고 상태를 관리합니다.
+이 프로젝트는 로컬 Ollama API와 연동하여 AI 여자친구 "사야"와의 대화를 콘솔에서 시뮬레이션하는 C++ 애플리케이션입니다. CMake를 통해 빌드되며, 헤더 전용 HTTP 클라이언트 라이브러리인 `cpp-httplib`과 `nlohmann::json`을 사용해 Ollama와 통신하고 상태를 관리합니다.
 
 ## 주요 기능
 - `data/persona.txt`에 정의된 사야의 페르소나를 로드하여 대화 맥락에 반영
@@ -16,6 +16,7 @@ ai-dating-sim/
 ├─ CMakeLists.txt
 ├─ include/
 │  ├─ character.h
+│  ├─ httplib.h
 │  ├─ ollama_client.h
 │  └─ utils.h
 ├─ src/
@@ -31,19 +32,8 @@ ai-dating-sim/
 ## 사전 준비물
 - C++17 호환 컴파일러 (예: GCC 11+, Clang 13+, MSVC 19.3+)
 - CMake 3.16 이상
-- `libcurl` 개발 헤더 및 라이브러리
-- 인터넷에서 제공하는 `nlohmann/json.hpp`는 `include/` 경로에 포함되어 있습니다.
+- 인터넷에서 제공하는 `nlohmann/json.hpp`와 `httplib.h`는 이미 `include/` 경로에 포함되어 있습니다.
 - 로컬에서 실행 중인 Ollama 서버 (`ollama serve`)
-
-### libcurl 설치 안내
-운영체제별로 `libcurl` 개발 패키지를 설치해야 합니다. 대표적인 설치 방법은 다음과 같습니다.
-
-- **Ubuntu / Debian 계열**: `sudo apt update && sudo apt install libcurl4-openssl-dev`
-- **Fedora / RHEL 계열**: `sudo dnf install libcurl-devel`
-- **macOS (Homebrew)**: `brew install curl`
-- **Windows (vcpkg)**: `vcpkg install curl[ssl]`
-
-Windows에서 vcpkg를 사용하지 않는다면 [curl 공식 사이트](https://curl.se/windows/)에서 제공하는 바이너리 또는 설치 관리자를 활용할 수 있습니다. 설치 후에는 CMake가 `libcurl`을 찾을 수 있도록 `CMAKE_PREFIX_PATH`나 `CMAKE_TOOLCHAIN_FILE`을 지정해 주세요.
 
 ## 빌드 방법
 ```bash
@@ -79,6 +69,6 @@ export OLLAMA_MODEL="llama3:8b"
 ## 문제 해결
 - Ollama 서버가 실행 중인지 확인하세요. (`ollama serve`)
 - 네트워크 오류 또는 응답이 없을 경우, 프로그램은 오류 메시지를 출력하고 다음 입력을 기다립니다.
-- `libcurl` 라이브러리나 인증서 설정이 필요할 수 있으니 운영체제에 맞는 패키지를 설치하세요.
+- 엔드포인트가 HTTPS라면 `cpp-httplib`에 OpenSSL 지원이 필요합니다. 현재 제공된 빌드 스크립트는 HTTP 전용으로 동작하며, HTTPS를 사용하려면 `CPPHTTPLIB_OPENSSL_SUPPORT`를 정의하고 OpenSSL을 링크하도록 CMake를 확장해야 합니다.
 
 행복한 대화 되세요! 💕
