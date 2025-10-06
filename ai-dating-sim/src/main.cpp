@@ -38,7 +38,7 @@ int main() {
     const char* modelEnv = std::getenv("OLLAMA_MODEL");
 
     std::string endpoint = endpointEnv ? endpointEnv : "http://localhost:11434/api/generate";
-    std::string model = modelEnv ? modelEnv : "llama3";
+    std::string model = modelEnv ? modelEnv : "llama3:8b";
 
     std::cout << "[안내] Ollama 엔드포인트: " << endpoint << " (모델: " << model << ")\n";
 

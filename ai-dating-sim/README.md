@@ -50,15 +50,15 @@ cmake --build build
 실행 후 콘솔에서 "오빠:" 프롬프트가 표시되며 자유롭게 메시지를 입력하면 됩니다. "exit"를 입력하면 프로그램이 종료됩니다.
 
 ## 환경 변수 설정
-프로그램은 기본적으로 `http://localhost:11434/api/generate` 엔드포인트와 `llama3` 모델을 사용합니다. 다음 환경 변수를 통해 값을 덮어쓸 수 있습니다.
+프로그램은 기본적으로 `http://localhost:11434/api/generate` 엔드포인트와 `llama3:8b` 모델을 사용합니다. 다음 환경 변수를 통해 값을 덮어쓸 수 있습니다.
 
 - `OLLAMA_ENDPOINT`: Ollama API 기본 URL (예: `http://localhost:11434/api/generate`)
-- `OLLAMA_MODEL`: 사용할 모델 이름 (예: `llama3`)
+- `OLLAMA_MODEL`: 사용할 모델 이름 (예: `llama3:8b`, `llama3` 등)
 
 예시:
 ```bash
 export OLLAMA_ENDPOINT="http://localhost:11434/api/generate"
-export OLLAMA_MODEL="llama3"
+export OLLAMA_MODEL="llama3:8b"
 ./build/ai_dating_sim
 ```
 
