@@ -35,6 +35,16 @@ ai-dating-sim/
 - 인터넷에서 제공하는 `nlohmann/json.hpp`는 `include/` 경로에 포함되어 있습니다.
 - 로컬에서 실행 중인 Ollama 서버 (`ollama serve`)
 
+### libcurl 설치 안내
+운영체제별로 `libcurl` 개발 패키지를 설치해야 합니다. 대표적인 설치 방법은 다음과 같습니다.
+
+- **Ubuntu / Debian 계열**: `sudo apt update && sudo apt install libcurl4-openssl-dev`
+- **Fedora / RHEL 계열**: `sudo dnf install libcurl-devel`
+- **macOS (Homebrew)**: `brew install curl`
+- **Windows (vcpkg)**: `vcpkg install curl[ssl]`
+
+Windows에서 vcpkg를 사용하지 않는다면 [curl 공식 사이트](https://curl.se/windows/)에서 제공하는 바이너리 또는 설치 관리자를 활용할 수 있습니다. 설치 후에는 CMake가 `libcurl`을 찾을 수 있도록 `CMAKE_PREFIX_PATH`나 `CMAKE_TOOLCHAIN_FILE`을 지정해 주세요.
+
 ## 빌드 방법
 ```bash
 cmake -S . -B build
