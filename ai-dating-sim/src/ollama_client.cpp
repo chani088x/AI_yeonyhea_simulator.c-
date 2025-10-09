@@ -22,6 +22,7 @@
 
 namespace {
 
+// URL을 분해한 결과를 담는 구조체입니다.
 struct ParsedEndpoint {
     std::string scheme;
     std::string host;
@@ -29,6 +30,7 @@ struct ParsedEndpoint {
     std::string path;
 };
 
+// 사용자가 지정한 엔드포인트 문자열을 파싱하고 오류를 검증합니다.
 std::optional<ParsedEndpoint> parseEndpoint(const std::string& endpoint, std::string& outError) {
     ParsedEndpoint parsed;
     parsed.port = 0;
@@ -89,6 +91,7 @@ std::optional<ParsedEndpoint> parseEndpoint(const std::string& endpoint, std::st
 }
 
 #ifdef _WIN32
+// Windows 환경에서 Winsock 초기화/정리를 관리하는 도우미 클래스입니다.
 class WinsockInitializer {
 public:
     explicit WinsockInitializer(std::string& outError) {
@@ -122,6 +125,7 @@ using SocketHandle = int;
 constexpr SocketHandle kInvalidSocket = -1;
 #endif
 
+// 플랫폼별로 소켓을 안전하게 닫습니다.
 void closeSocket(SocketHandle socket) {
 #ifdef _WIN32
     if (socket != INVALID_SOCKET) {
@@ -134,6 +138,7 @@ void closeSocket(SocketHandle socket) {
 #endif
 }
 
+// 소켓에 송수신 타임아웃을 설정합니다.
 bool setSocketTimeouts(SocketHandle socket, std::string& outError) {
 #ifdef _WIN32
     DWORD timeoutMs = 30000; // 30초
@@ -161,6 +166,7 @@ bool setSocketTimeouts(SocketHandle socket, std::string& outError) {
     return true;
 }
 
+// DNS 조회 후 Ollama 서버에 TCP 연결을 맺습니다.
 SocketHandle connectToEndpoint(const ParsedEndpoint& parsed, std::string& outError) {
     addrinfo hints{};
     hints.ai_family = AF_UNSPEC;
@@ -209,6 +215,7 @@ SocketHandle connectToEndpoint(const ParsedEndpoint& parsed, std::string& outErr
     return sock;
 }
 
+// HTTP 요청 전체를 보낼 때까지 반복 전송합니다.
 bool sendAll(SocketHandle socket, const std::string& data, std::string& outError) {
     size_t totalSent = 0;
     while (totalSent < data.size()) {
@@ -239,6 +246,7 @@ bool sendAll(SocketHandle socket, const std::string& data, std::string& outError
     return true;
 }
 
+// 서버가 연결을 끊을 때까지 응답을 모두 읽어옵니다.
 std::optional<std::string> receiveAll(SocketHandle socket, std::string& outError) {
     std::string result;
     char buffer[4096];
@@ -279,6 +287,7 @@ std::optional<std::string> receiveAll(SocketHandle socket, std::string& outError
     return result;
 }
 
+// 문자열을 소문자로 변환해 헤더 비교를 쉽게 합니다.
 std::string toLower(std::string str) {
     std::transform(str.begin(), str.end(), str.begin(), [](unsigned char ch) {
         return static_cast<char>(std::tolower(ch));
@@ -286,6 +295,7 @@ std::string toLower(std::string str) {
     return str;
 }
 
+// 문자열 양끝 공백을 제거합니다.
 std::string trim(const std::string& str) {
     const auto begin = str.find_first_not_of(" \t\r\n");
     if (begin == std::string::npos) {
@@ -295,6 +305,7 @@ std::string trim(const std::string& str) {
     return str.substr(begin, end - begin + 1);
 }
 
+// chunked 전송 인코딩 본문을 일반 문자열로 디코딩합니다.
 std::optional<std::string> decodeChunkedBody(const std::string& body, std::string& outError) {
     std::string decoded;
     size_t pos = 0;
@@ -336,6 +347,7 @@ std::optional<std::string> decodeChunkedBody(const std::string& body, std::strin
     return std::nullopt;
 }
 
+// HTTP 응답에서 상태 코드와 헤더를 검사하고 본문을 추출합니다.
 std::optional<std::string> extractBody(const std::string& response, std::string& outError) {
     auto headerEnd = response.find("\r\n\r\n");
     if (headerEnd == std::string::npos) {
@@ -410,12 +422,14 @@ std::optional<std::string> extractBody(const std::string& response, std::string&
 
 namespace ai {
 
+// 엔드포인트와 모델 이름을 그대로 저장해 이후 요청에서 사용합니다.
 OllamaClient::OllamaClient(const std::string& endpoint, const std::string& model)
     : endpoint_(endpoint), model_(model) {}
 
 std::string OllamaClient::buildPrompt(const std::string& persona,
                                       const std::string& conversationHistory,
                                       const std::string& playerInput) const {
+    // 사야가 따뜻하게 답변하도록 안내 문구와 대화 기록을 포함한 프롬프트를 작성합니다.
     std::ostringstream oss;
     oss << "너는 가상의 여자친구 '" << "사야" << "'로서 오빠에게 다정하게 답해야 해.\n";
     oss << "사야의 페르소나:\n" << persona << "\n\n";
@@ -433,6 +447,7 @@ std::string OllamaClient::generateReply(const std::string& persona,
                                         std::string& outError) const {
     outError.clear();
 
+    // 엔드포인트 형식이 올바른지 확인합니다.
     auto parsed = parseEndpoint(endpoint_, outError);
     if (!parsed) {
         return {};
@@ -450,11 +465,13 @@ std::string OllamaClient::generateReply(const std::string& persona,
     }
 #endif
 
+    // Ollama 서버와 TCP 연결을 수립합니다.
     SocketHandle socket = connectToEndpoint(*parsed, outError);
     if (socket == kInvalidSocket) {
         return {};
     }
 
+    // 플레이어 입력과 대화 내용을 프롬프트로 변환합니다.
     std::string prompt = buildPrompt(persona, conversationHistory, playerInput);
 
     nlohmann::json payload;
@@ -464,6 +481,7 @@ std::string OllamaClient::generateReply(const std::string& persona,
 
     std::string payloadStr = payload.dump();
 
+    // HTTP POST 요청 헤더와 본문을 작성합니다.
     std::ostringstream request;
     request << "POST " << parsed->path << " HTTP/1.1\r\n";
     request << "Host: " << parsed->host;
@@ -478,12 +496,14 @@ std::string OllamaClient::generateReply(const std::string& persona,
     request << payloadStr;
 
     std::string requestStr = request.str();
+    // 요청을 전송하고 실패 시 즉시 종료합니다.
     bool sent = sendAll(socket, requestStr, outError);
     if (!sent) {
         closeSocket(socket);
         return {};
     }
 
+    // 응답 전체를 수신합니다.
     auto response = receiveAll(socket, outError);
     closeSocket(socket);
 
@@ -491,12 +511,14 @@ std::string OllamaClient::generateReply(const std::string& persona,
         return {};
     }
 
+    // HTTP 본문만 추출하고 오류 코드를 검사합니다.
     auto body = extractBody(*response, outError);
     if (!body) {
         return {};
     }
 
     try {
+        // Ollama가 반환한 JSON에서 실제 응답 메시지를 꺼냅니다.
         auto jsonResponse = nlohmann::json::parse(*body);
         if (jsonResponse.contains("response")) {
             return jsonResponse["response"].get<std::string>();
