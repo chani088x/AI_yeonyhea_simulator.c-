@@ -61,6 +61,31 @@ export OLLAMA_MODEL="llama3:8b"
 ./build/ai_dating_sim
 ```
 
+### 모델 변경 방법
+1. **한 번만 임시로 바꾸고 싶다면** 실행 전에 환경 변수를 지정하세요.
+   - macOS/Linux:
+     ```bash
+     export OLLAMA_MODEL="llama3:70b"
+     ./build/ai_dating_sim
+     ```
+   - Windows PowerShell:
+     ```powershell
+     $env:OLLAMA_MODEL = "llama3:70b"
+     .\build\ai_dating_sim.exe
+     ```
+   - Windows 명령 프롬프트(CMD):
+     ```cmd
+     set OLLAMA_MODEL=llama3:70b
+     build\ai_dating_sim.exe
+     ```
+   프로그램 실행 중 출력되는 `[안내] Ollama 엔드포인트: ... (모델: ...)` 메시지로 적용 여부를 확인할 수 있습니다.
+
+2. **항상 같은 모델을 쓰고 싶다면** `src/main.cpp`의 기본값을 직접 수정할 수도 있습니다.
+   ```cpp
+   std::string model = modelEnv ? modelEnv : "llama3:8b"; // <- 원하는 기본 모델명으로 변경
+   ```
+   변경 후 다시 빌드하면 환경 변수를 지정하지 않았을 때도 새 기본 모델이 사용됩니다.
+
 ## 데이터 파일
 - `data/persona.txt`: 사야의 페르소나 및 인사말을 정의합니다. 필요에 따라 내용을 수정하면 AI의 말투와 성격을 바꿀 수 있습니다.
 - `data/save.json`: 호감도와 마지막 대화를 저장합니다. 파일이 없을 경우 프로그램이 기본 값을 생성합니다.
