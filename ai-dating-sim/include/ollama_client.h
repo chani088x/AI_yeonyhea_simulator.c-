@@ -4,7 +4,7 @@
 
 namespace ai {
 
-// Ollama API와 통신해 사야의 응답을 받아오는 HTTP 클라이언트입니다.
+// Ollama API와 통신해 사야의 응답을 받아오는 libcurl 기반 HTTP 클라이언트입니다.
 class OllamaClient {
 public:
     // 엔드포인트와 모델 이름을 지정하여 클라이언트를 구성합니다.

@@ -1,7 +1,7 @@
 # AI 콘솔 연애 시뮬레이터
 
 ## 프로젝트 개요
-이 프로젝트는 로컬 Ollama API와 연동하여 AI 여자친구 "사야"와의 대화를 콘솔에서 시뮬레이션하는 C++ 애플리케이션입니다. CMake를 통해 빌드되며, `nlohmann::json`으로 Ollama 응답을 파싱하고 자체 구현한 경량 TCP/HTTP 클라이언트를 이용해 API와 통신합니다.
+이 프로젝트는 로컬 Ollama API와 연동하여 AI 여자친구 "사야"와의 대화를 콘솔에서 시뮬레이션하는 C++ 애플리케이션입니다. CMake를 통해 빌드되며, `nlohmann::json`으로 Ollama 응답을 파싱하고 `libcurl`을 이용해 HTTP 요청을 전송합니다.
 
 ## 주요 기능
 - `data/persona.txt`에 정의된 사야의 페르소나를 로드하여 대화 맥락에 반영
@@ -33,6 +33,15 @@ ai-dating-sim/
 - CMake 3.16 이상
 - 인터넷에서 제공하는 `nlohmann/json.hpp`는 이미 `include/` 경로에 포함되어 있습니다.
 - 로컬에서 실행 중인 Ollama 서버 (`ollama serve`)
+- `libcurl` 개발 패키지 (운영체제별 설치 방법은 아래 참고)
+
+### libcurl 설치 안내
+- **Ubuntu/Debian 계열**: `sudo apt install libcurl4-openssl-dev`
+- **Fedora/RHEL 계열**: `sudo dnf install libcurl-devel`
+- **macOS (Homebrew)**: `brew install curl`
+- **Windows (vcpkg)**: `vcpkg install curl[core,ssl]` 후 `CMAKE_TOOLCHAIN_FILE`로 vcpkg를 연결하거나, 미리 빌드된 libcurl 바이너리를 프로젝트에 추가하세요.
+
+기존에 OS에 포함된 libcurl이 있다면 개발 헤더(예: `curl/curl.h`)가 함께 제공되는지 확인하세요.
 
 ## 빌드 방법
 ```bash
@@ -93,6 +102,6 @@ export OLLAMA_MODEL="llama3:8b"
 ## 문제 해결
 - Ollama 서버가 실행 중인지 확인하세요. (`ollama serve`)
 - 네트워크 오류 또는 응답이 없을 경우, 프로그램은 오류 메시지를 출력하고 다음 입력을 기다립니다.
-- 현재 HTTP 통신은 표준 소켓 API를 직접 사용합니다. HTTPS는 지원되지 않으므로 Ollama 서버를 HTTP로 노출해야 합니다.
+- HTTP 통신은 libcurl을 사용하므로 HTTPS도 지원하지만, 로컬 Ollama는 기본적으로 HTTP로 동작합니다. 외부 연결 시에는 적절한 인증과 TLS 구성을 직접 처리해야 합니다.
 
 행복한 대화 되세요! 💕

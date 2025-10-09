@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+find_package(CURL REQUIRED)
+
 add_library(nlohmann_json INTERFACE)
 target_include_directories(nlohmann_json INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -20,8 +22,4 @@ target_include_directories(ai_dating_sim
         include
 )
 
-target_link_libraries(ai_dating_sim PRIVATE nlohmann_json)
-
-if (WIN32)
-    target_link_libraries(ai_dating_sim PRIVATE ws2_32)
-endif()
+target_link_libraries(ai_dating_sim PRIVATE nlohmann_json CURL::libcurl)
