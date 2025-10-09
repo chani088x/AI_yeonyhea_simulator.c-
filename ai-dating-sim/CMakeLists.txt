@@ -21,3 +21,7 @@ target_include_directories(ai_dating_sim
 )
 
 target_link_libraries(ai_dating_sim PRIVATE nlohmann_json)
+
+if (WIN32)
+    target_link_libraries(ai_dating_sim PRIVATE ws2_32)
+endif()

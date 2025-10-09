@@ -1,7 +1,7 @@
 # AI 콘솔 연애 시뮬레이터
 
 ## 프로젝트 개요
-이 프로젝트는 로컬 Ollama API와 연동하여 AI 여자친구 "사야"와의 대화를 콘솔에서 시뮬레이션하는 C++ 애플리케이션입니다. CMake를 통해 빌드되며, 헤더 전용 HTTP 클라이언트 라이브러리인 `cpp-httplib`과 `nlohmann::json`을 사용해 Ollama와 통신하고 상태를 관리합니다.
+이 프로젝트는 로컬 Ollama API와 연동하여 AI 여자친구 "사야"와의 대화를 콘솔에서 시뮬레이션하는 C++ 애플리케이션입니다. CMake를 통해 빌드되며, `nlohmann::json`으로 Ollama 응답을 파싱하고 자체 구현한 경량 TCP/HTTP 클라이언트를 이용해 API와 통신합니다.
 
 ## 주요 기능
 - `data/persona.txt`에 정의된 사야의 페르소나를 로드하여 대화 맥락에 반영
@@ -16,7 +16,6 @@ ai-dating-sim/
 ├─ CMakeLists.txt
 ├─ include/
 │  ├─ character.h
-│  ├─ httplib.h
 │  ├─ ollama_client.h
 │  └─ utils.h
 ├─ src/
@@ -32,7 +31,7 @@ ai-dating-sim/
 ## 사전 준비물
 - C++17 호환 컴파일러 (예: GCC 11+, Clang 13+, MSVC 19.3+)
 - CMake 3.16 이상
-- 인터넷에서 제공하는 `nlohmann/json.hpp`와 `httplib.h`는 이미 `include/` 경로에 포함되어 있습니다.
+- 인터넷에서 제공하는 `nlohmann/json.hpp`는 이미 `include/` 경로에 포함되어 있습니다.
 - 로컬에서 실행 중인 Ollama 서버 (`ollama serve`)
 
 ## 빌드 방법
@@ -69,6 +68,6 @@ export OLLAMA_MODEL="llama3:8b"
 ## 문제 해결
 - Ollama 서버가 실행 중인지 확인하세요. (`ollama serve`)
 - 네트워크 오류 또는 응답이 없을 경우, 프로그램은 오류 메시지를 출력하고 다음 입력을 기다립니다.
-- 엔드포인트가 HTTPS라면 `cpp-httplib`에 OpenSSL 지원이 필요합니다. 현재 제공된 빌드 스크립트는 HTTP 전용으로 동작하며, HTTPS를 사용하려면 `CPPHTTPLIB_OPENSSL_SUPPORT`를 정의하고 OpenSSL을 링크하도록 CMake를 확장해야 합니다.
+- 현재 HTTP 통신은 표준 소켓 API를 직접 사용합니다. HTTPS는 지원되지 않으므로 Ollama 서버를 HTTP로 노출해야 합니다.
 
 행복한 대화 되세요! 💕
